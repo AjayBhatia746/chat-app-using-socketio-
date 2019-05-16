@@ -1,4 +1,5 @@
 const path=require('path')
+const {generateTimestamp,generatelocation}=require('../src/utilis/messages')
 const express=require('express')
 const http=require('http')//http is a core module and we do n't need to install it
 const app=express()
@@ -18,22 +19,22 @@ io.on('connection',(socket)=>{//socket is an object that contain information abo
     
     //io makes to emit the count to every single object connected socket.emit emit to a single connection only 
    
-   socket.emit('message','Welcome')
-   socket.broadcast.emit('message','A new user have entered')// It is too show the message to everyone that a new user is added
+   socket.emit('message',generateTimestamp('Welcome'))
+   socket.broadcast.emit('message',generateTimestamp('A new user have entered'))// It is too show the message to everyone that a new user is added
    socket.on('sendMessage',(message,callback)=>{
     const filter=new Filter()
     if(filter.isProfane(message)){
        return callback('Profinity is not allowed')
     }    
-    io.emit('message',message)
+    io.emit('message',generateTimestamp(message))
         callback()
    })
    socket.on('sendlocation',(coords,callback)=>{
-        io.emit('message','https://www.google.com/maps/?q='+coords.latitude+','+coords.longitude )
+        io.emit('locationMessage',generatelocation('https://www.google.com/maps/?q='+coords.latitude+','+coords.longitude ))
         callback()
    })
    socket.on('disconnect',()=>{
-       io.emit('message','A user have left')
+       io.emit('message',generateTimestamp('A user have left'))
    })
 })
 
