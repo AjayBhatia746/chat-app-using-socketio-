@@ -1,11 +1,11 @@
-const generateTimestamp=(text)=>{
-return  {
+const generateTimestamp=(username,text)=>{
+return  {username,
     text,
 createdAt:new Date().getTime()
 }  
 }
-const generatelocation=(url)=>{
-    return  {
+const generatelocation=(username,url)=>{
+    return  {username,
         url,
     createdAt:new Date().getTime()
     }  

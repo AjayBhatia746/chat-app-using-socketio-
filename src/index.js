@@ -1,4 +1,5 @@
 const path=require('path')
+const {addUser,removeUser,getUser,getUserInRoom}=require('./utilis/users')
 const {generateTimestamp,generatelocation}=require('../src/utilis/messages')
 const express=require('express')
 const http=require('http')//http is a core module and we do n't need to install it
@@ -18,23 +19,51 @@ io.on('connection',(socket)=>{//socket is an object that contain information abo
     //anything that I will provide after the countupdate will be use as callback we need a functon to catch it on index.js
     
     //io makes to emit the count to every single object connected socket.emit emit to a single connection only 
+  
+   /*
+   socket.emit=it is for a particular user
+   io.emit=it is for all the user in the group
+   socket.broadcast.emit=for all users accept the person that is broadcasting
+   io.to(room name).emit=for all the clients of a particular room
+   socket.broadcast.to(room name) =for for all users accept the person that is broadcasting in a group
+   */
+   socket.on('Join',({username,room},callback)=>{
+       const {user,error}=addUser({id:socket.id,username,room})
+        if(error){
+            return callback(error)
+        }
+       socket.join(user.room)
+     
+
+   socket.emit('message',generateTimestamp('Admin','Welcome'))
+   socket.broadcast.to(user.room).emit('message',generateTimestamp('Admin',`${user.username} has entered`))// It is too show the message to everyone that a new user is added
+        callback()
+})
    
-   socket.emit('message',generateTimestamp('Welcome'))
-   socket.broadcast.emit('message',generateTimestamp('A new user have entered'))// It is too show the message to everyone that a new user is added
+   
    socket.on('sendMessage',(message,callback)=>{
+       const user=getUser(socket.id)
     const filter=new Filter()
     if(filter.isProfane(message)){
        return callback('Profinity is not allowed')
     }    
-    io.emit('message',generateTimestamp(message))
+    io.to(user.room).emit('message',generateTimestamp(user.username,message))
         callback()
    })
+
+
    socket.on('sendlocation',(coords,callback)=>{
-        io.emit('locationMessage',generatelocation('https://www.google.com/maps/?q='+coords.latitude+','+coords.longitude ))
+    const user=getUser(socket.id)
+
+        io.to(user.room).emit('locationMessage',generatelocation(user.username,'https://www.google.com/maps/?q='+coords.latitude+','+coords.longitude ))
         callback()
    })
    socket.on('disconnect',()=>{
-       io.emit('message',generateTimestamp('A user have left'))
+       const user=removeUser(socket.id)
+       if(user){
+        io.emit('message',generateTimestamp(`${user.username} have left`))
+       }
+       
    })
 })
 

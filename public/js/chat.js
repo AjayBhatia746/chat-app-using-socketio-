@@ -6,12 +6,16 @@ const $locationtemplate=document.querySelector('#location-message-template').inn
 const $messages=document.querySelector('#messages')
 const $message_template=document.querySelector('#message-template').innerHTML//template
 
+
+const {username,room}=Qs.parse(location.search,{ignoreQueryPrefix:true})
+console.log(username)
 //for messages rendering
 
 const socket=io()
 socket.on('message',(message)=>{
     console.log(message)
     const html=Mustache.render($message_template,{
+        username1:message.username,
         message:message.text,
         createdAt:moment(message.createdAt).format('h:mm:a')
     })
@@ -25,6 +29,7 @@ socket.on('locationMessage',(url)=>{
 console.log(url)
 const html=Mustache.render($locationtemplate,{
     url:url.url,
+    username:url.username,
     createdAt:moment(url.createdAt).format('h:mm:a')
 })
 $messages.insertAdjacentHTML('beforeend',html)
@@ -44,6 +49,7 @@ $messageformButton.setAttribute('disabled','disabled')
     const message= e.target.elements.message.value
     socket.emit('sendMessage',message,(error)=>{
         //Here we are enabling the user to send the data
+
         $messageformButton.removeAttribute('disabled')
         $messageformInput.value=''
         $messageformInput.focus()
@@ -71,4 +77,12 @@ $locationbutton.addEventListener('click',()=>{
     })
    })
 
+})
+
+
+socket.emit('Join',{username,room},(error)=>{
+if(error){
+    alert(error)
+    location.href='/'
+}
 })
