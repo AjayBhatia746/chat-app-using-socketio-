@@ -4,13 +4,38 @@ const $messageformButton=document.querySelector('#button')
 const $locationbutton=document.querySelector('#send-location')
 const $locationtemplate=document.querySelector('#location-message-template').innerHTML
 const $messages=document.querySelector('#messages')
-const $message_template=document.querySelector('#message-template').innerHTML//template
 
+//templates
+const $message_template=document.querySelector('#message-template').innerHTML//template
+const $sidebar_template=document.querySelector('#sidebar-template').innerHTML
 
 const {username,room}=Qs.parse(location.search,{ignoreQueryPrefix:true})
 console.log(username)
-//for messages rendering
 
+
+//for auto scorling
+const autoscroll=()=>{
+    //height of the new message
+    const $newmessage=$messages.lastElementChild
+    const newMessageStyle=getComputedStyle($newmessage)
+    const newMessagemargin=parseInt(newMessageStyle.marginBottom)
+    const newMessageHeight=$newmessage.offsetHeight + newMessagemargin
+
+    //visible height
+    const visibleHeight=$messages.offsetHeight
+    //Height of message Container
+    const containerHeight=$messages.scrollHeight
+    //howw far I have scrolled
+    const scrollOffset=$messages.scrollTop + visibleHeight
+    if(containerHeight-newMessageHeight<=scrollOffset){
+        $messages.scrollTop=$messages.scrollHeight
+    }
+
+
+}
+
+
+//for messages rendering
 const socket=io()
 socket.on('message',(message)=>{
     console.log(message)
@@ -20,6 +45,7 @@ socket.on('message',(message)=>{
         createdAt:moment(message.createdAt).format('h:mm:a')
     })
     $messages.insertAdjacentHTML('beforeend',html)
+    autoscroll()
 })
 
 
@@ -33,10 +59,18 @@ const html=Mustache.render($locationtemplate,{
     createdAt:moment(url.createdAt).format('h:mm:a')
 })
 $messages.insertAdjacentHTML('beforeend',html)
+autoscroll()
 })
 
 
-
+socket.on('room-data',({room,users})=>{
+    console.log(room,users)
+    const html=Mustache.render($sidebar_template,{
+        room:room.toUpperCase(),
+       users
+    })
+    document.querySelector('#sidebar_content').innerHTML=html
+})
 
 
 

@@ -37,7 +37,11 @@ io.on('connection',(socket)=>{//socket is an object that contain information abo
 
    socket.emit('message',generateTimestamp('Admin','Welcome'))
    socket.broadcast.to(user.room).emit('message',generateTimestamp('Admin',`${user.username} has entered`))// It is too show the message to everyone that a new user is added
-        callback()
+    io.to(user.room).emit('room-data',{
+        room:user.room,
+        users:getUserInRoom(user.room)
+    })     
+   callback()
 })
    
    
@@ -62,6 +66,10 @@ io.on('connection',(socket)=>{//socket is an object that contain information abo
        const user=removeUser(socket.id)
        if(user){
         io.emit('message',generateTimestamp(`${user.username} have left`))
+        io.to(user.room).emit('room-data',{
+            room:user.room,
+            users:getUserInRoom(user.room)
+        })
        }
        
    })
